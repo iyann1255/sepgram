@@ -18,7 +18,9 @@
 
 from .can_send_story import CanSendStory
 from .copy_story import CopyStory
+from .create_story_album import CreateStoryAlbum
 from .delete_stories import DeleteStories
+from .delete_story_album import DeleteStoryAlbum
 from .edit_story import EditStory
 from .export_story_link import ExportStoryLink
 from .forward_story import ForwardStory
@@ -27,16 +29,20 @@ from .get_peer_stories import GetPeerStories
 from .get_pinned_stories import GetPinnedStories
 from .get_stories import GetStories
 from .get_stories_archive import GetStoriesArchive
+from .get_story_albums import GetStoryAlbums
 from .hide_stories import HideStories
 from .increment_story_views import IncrementStoryViews
 from .pin_stories import PinStories
 from .read_stories import ReadStories
 from .send_story import SendStory
+from .update_story_album import UpdateStoryAlbum
 
 class Stories(
     CanSendStory,
     CopyStory,
+    CreateStoryAlbum,
     DeleteStories,
+    DeleteStoryAlbum,
     EditStory,
     ExportStoryLink,
     ForwardStory,
@@ -45,10 +51,12 @@ class Stories(
     GetPinnedStories,
     GetStories,
     GetStoriesArchive,
+    GetStoryAlbums,
     HideStories,
     IncrementStoryViews,
     PinStories,
     ReadStories,
     SendStory,
+    UpdateStoryAlbum,
 ):
     pass

@@ -25,6 +25,7 @@ from .decorators import Decorators
 from .invite_links import InviteLinks
 from .messages import Messages
 from .password import Password
+from .payments import Payments
 from .premium import Premium
 from .users import Users
 from .stories import Stories
@@ -39,6 +40,7 @@ class Methods(
     Bots,
     Contacts,
     Password,
+    Payments,
     Premium,
     Chats,
     Users,
