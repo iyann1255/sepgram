@@ -240,14 +240,18 @@ async def executor(client, message):
     final_output = f"{prefix}<b>INPUT:</b>\n<pre language='python'>{html.escape(code)}</pre>\n<b>OUTPUT:</b>\n<pre language='python'>{html.escape(out)}</pre>\nExecuted Time: {elapsed}"
     if len(final_output) > 4096:
         final_text = f"{prefix}<b>INPUT:</b>\n<pre language='python'>{html.escape(code)}</pre>\n<b>OUTPUT:</b>\n<pre language='python'>{out[:512]}...</pre>\nExecuted Time: {elapsed}"
-        buttons = pyrogram.helpers.ikb(
-            [[("exec", "exec"), ("🗑", f"forceclose abc|{message.from_user.id}")]]
-        )
+        buttons = pyrogram.types.InlineKeyboardMarkup([
+            [pyrogram.types.InlineKeyboardButton("exec", callback_data="exec"),
+             pyrogram.types.InlineKeyboardButton("🗑", callback_data=f"forceclose abc|{message.from_user.id}")]
+        ])
         return await status_message.edit(
             final_text,
             reply_markup=buttons,
         )
-    buttons = pyrogram.helpers.ikb([[("exec", "exec"), ("🗑", f"forceclose abc|{message.from_user.id}")]])
+    buttons = pyrogram.types.InlineKeyboardMarkup([
+        [pyrogram.types.InlineKeyboardButton("exec", callback_data="exec"),
+         pyrogram.types.InlineKeyboardButton("🗑", callback_data=f"forceclose abc|{message.from_user.id}")]
+    ])
     return await status_message.edit(
         final_output,
         reply_markup=buttons,
