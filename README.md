@@ -3,7 +3,7 @@
         <img src="https://docs.pyrogram.org/_static/pyrogram.png" alt="Sepgram" width="128">
     </a>
     <br>
-    <b>Sepgram — Pyrogram Navy Fork</b>
+    <b>Sepgram</b>
     <br>
     <b>Telegram MTProto API Framework for Python</b>
 </p>
@@ -22,7 +22,7 @@
 
 ## About
 
-**Sepgram** (pyrogram-navy) is a modern, elegant and asynchronous Telegram MTProto API framework in Python for users and bots. Fork dari Pyrogram dengan fitur tambahan dan update layer terbaru.
+**Sepgram** is a modern, elegant and asynchronous Telegram MTProto API framework in Python for users and bots. Dengan fitur tambahan dan update layer terbaru.
 
 - **Layer**: 225 (terbaru)
 - **Version**: 2.0.225
