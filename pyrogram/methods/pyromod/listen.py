@@ -100,7 +100,7 @@ class Listen:
 
         try:
             return await asyncio.wait_for(future, timeout)
-        except asyncio.exceptions.TimeoutError:
+        except asyncio.TimeoutError:
             if callable(PyromodConfig.timeout_handler):
                 if inspect.iscoroutinefunction(PyromodConfig.timeout_handler.__call__):
                     await PyromodConfig.timeout_handler(pattern, listener, timeout)
@@ -110,3 +110,4 @@ class Listen:
                     )
             elif PyromodConfig.throw_exceptions:
                 raise ListenerTimeout(timeout)
+            raise ListenerTimeout(timeout)

@@ -210,6 +210,8 @@ class Dispatcher:
                 for lock in self.locks_list:
                     lock.release()
 
+        self.loop.create_task(fn())
+
     async def handler_worker(self, lock: asyncio.Lock):
         while True:
             packet = await self.updates_queue.get()

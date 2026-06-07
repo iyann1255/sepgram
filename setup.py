@@ -77,7 +77,7 @@ setup(
     keywords="telegram chat messenger mtproto api client library python",
     python_requires=">=3.8",
     package_data={
-        "pyrogram-navy": ["py.typed"],
+        "pyrogram": ["py.typed"],
     },
     packages=find_packages(exclude=["compiler*", "tests*"]),
     zip_safe=False,

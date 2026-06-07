@@ -56,7 +56,6 @@ from pyrogram.session import Auth, Session
 from pyrogram.storage import FileStorage, MemoryStorage
 from pyrogram.types import User, TermsOfService, Message, CallbackQuery
 from pyrogram.types.pyromod import ListenerTypes
-from typing import Optional, Union    
 from pyrogram.utils import ainput
 from .dispatcher import Dispatcher
 from .file_id import FileId, FileType, ThumbnailSource
@@ -455,9 +454,9 @@ class Client(Methods):
             else:
                 break
 
-        if isinstance(signed_in, TermsOfService):
-            print("\n" + signed_in.text + "\n")
-            await self.accept_terms_of_service(signed_in.id)
+        if isinstance(signed_up, TermsOfService):
+            print("\n" + signed_up.text + "\n")
+            await self.accept_terms_of_service(signed_up.id)
 
         return signed_up
     

@@ -35,7 +35,7 @@ class InlineKeyboard(InlineKeyboardMarkup):
         self.row_width = row_width
 
     def add(self, *args):
-        self.inline_keyboard = [
+        self.inline_keyboard[:] = [
             args[i:i + self.row_width]
             for i in range(0, len(args), self.row_width)
         ]
@@ -139,7 +139,7 @@ class InlineKeyboard(InlineKeyboardMarkup):
             for i in range(0, len(locales))
         ]
 
-        self.inline_keyboard = [
+        self.inline_keyboard[:] = [
             buttons[i:i + row_width]
             for i in range(0, len(buttons), row_width)
         ]
@@ -175,7 +175,7 @@ class InlinePaginationKeyboard(InlineKeyboardMarkup):
         self.count_pages = count_pages
         self.current_page = current_page
         self.callback_pattern = callback_pattern
-        self.markup
+        self.inline_keyboard.append(self.build_pagination)
 
     def add_button(self, text, callback_data):
         return InlineKeyboardButton(
@@ -261,22 +261,6 @@ class InlinePaginationKeyboard(InlineKeyboardMarkup):
         self.inline_keyboard.append(self.build_pagination)
 
 
-class InlineButton(InlineKeyboardButton):
-    def __init__(self, text=None, callback_data=None, url=None,
-                 login_url=None, user_id=None, switch_inline_query=None,
-                 switch_inline_query_current_chat=None, callback_game=None):
-        super().__init__(
-            text=text,
-            callback_data=callback_data,
-            url=url,
-            login_url=login_url,
-            user_id=user_id,
-            switch_inline_query=switch_inline_query,
-            switch_inline_query_current_chat=switch_inline_query_current_chat,
-            callback_game=callback_game
-        )
-
-
 class ReplyKeyboard(ReplyKeyboardMarkup):
     def __init__(self, resize_keyboard=None, one_time_keyboard=None,
                  selective=None, placeholder=None, row_width=3):
@@ -291,7 +275,7 @@ class ReplyKeyboard(ReplyKeyboardMarkup):
         self.row_width = row_width
 
     def add(self, *args):
-        self.keyboard = [
+        self.keyboard[:] = [
             args[i:i + self.row_width]
             for i in range(0, len(args), self.row_width)
         ]

@@ -77,6 +77,13 @@ class RPCError(Exception):
         error_id = re.sub(r"_\d+", "_X", error_message)
 
         if error_id not in exceptions[error_code]:
+            if "_" not in exceptions[error_code]:
+                raise UnknownError(
+                    value=f"[{error_code} {error_message}]",
+                    rpc_name=rpc_name,
+                    is_unknown=True,
+                    is_signed=is_signed
+                )
             raise getattr(
                 import_module("pyrogram.errors"),
                 exceptions[error_code]["_"]

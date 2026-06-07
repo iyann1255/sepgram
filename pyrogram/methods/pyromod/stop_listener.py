@@ -47,7 +47,7 @@ class StopListener:
         """
         self.remove_listener(listener)
 
-        if listener.future.done():
+        if listener.future is None or listener.future.done():
             return
 
         if callable(PyromodConfig.stopped_handler):

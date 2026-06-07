@@ -30,6 +30,11 @@ class TextFormatter(str):
 class Formatter:
     
     @staticmethod
+    def text(text_content: str, parse_mode: str = "markdown"):
+        """Plain text without formatting"""
+        return TextFormatter(text_content, mode=parse_mode)
+
+    @staticmethod
     def bold(text_content: str, parse_mode: str = "markdown"):
         """Bold text"""
         if parse_mode == "html":

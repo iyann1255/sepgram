@@ -17,7 +17,6 @@
 #  along with Pyrogram.  If not, see <http://www.gnu.org/licenses/>.
 
 import asyncio
-import importlib.util
 import sys
 import base64
 import functools
@@ -528,7 +527,7 @@ def max_datetime() -> datetime:
 
 
 def timestamp_to_datetime(ts: Optional[int]) -> Optional[datetime]:
-    return datetime.fromtimestamp(ts) if ts else None
+    return datetime.fromtimestamp(ts, timezone.utc) if ts else None
 
 
 def datetime_to_timestamp(dt: Optional[datetime]) -> Optional[int]:
