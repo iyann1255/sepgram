@@ -24,15 +24,25 @@ from pyrogram import types
 from ..object import Object
 
 
-def _build_raw_style(style: "enums.ButtonStyle", icon: int = None) -> Optional["raw.types.KeyboardButtonStyle"]:
-    """Convert ButtonStyle enum to raw KeyboardButtonStyle TL object."""
-    if style is None or style == enums.ButtonStyle.DEFAULT:
+def _build_raw_style(
+    style: "enums.ButtonStyle",
+    icon: int = None
+) -> Optional["raw.types.KeyboardButtonStyle"]:
+    """Convert ButtonStyle enum (and/or a custom emoji icon) to a raw KeyboardButtonStyle TL object.
+
+    A style object is emitted whenever *either* a color style or a custom emoji icon is given,
+    so a premium/custom emoji icon can be used on a button with no color at all.
+    """
+    has_color = style is not None and style != enums.ButtonStyle.DEFAULT
+
+    if not has_color and icon is None:
         return None
+
     return raw.types.KeyboardButtonStyle(
         bg_primary=(style == enums.ButtonStyle.PRIMARY),
         bg_danger=(style == enums.ButtonStyle.DANGER),
         bg_success=(style == enums.ButtonStyle.SUCCESS),
-        icon=icon,
+        icon=int(icon) if icon is not None else None,
     )
 
 
@@ -48,6 +58,12 @@ def _read_raw_style(b) -> Optional["enums.ButtonStyle"]:
     if getattr(s, "bg_success", False):
         return enums.ButtonStyle.SUCCESS
     return enums.ButtonStyle.DEFAULT
+
+
+def _read_raw_icon(b) -> Optional[int]:
+    """Read the custom emoji id used as icon from a raw KeyboardButtonStyle, if any."""
+    s = getattr(b, "style", None)
+    return getattr(s, "icon", None) if s is not None else None
 
 
 class InlineKeyboardButton(Object):
@@ -81,7 +97,12 @@ class InlineKeyboardButton(Object):
             :obj:`~pyrogram.enums.ButtonStyle.SUCCESS` for green.
             Defaults to :obj:`~pyrogram.enums.ButtonStyle.DEFAULT` (no color).
 
-        style_icon (``int``, *optional*):\n            Custom emoji ID to show as an icon on the button (used together with ``style``).
+        style_icon (``int``, *optional*):\n            Deprecated alias of ``icon_custom_emoji_id``. Kept for backward compatibility.
+
+        icon_custom_emoji_id (``int``, *optional*):\n            Identifier of a custom emoji (premium emoji) to be shown as an icon on the button.
+            Works with or without ``style``. You can get the id from
+            :obj:`~pyrogram.types.Sticker.custom_emoji_id` or from a
+            :obj:`~pyrogram.enums.MessageEntityType.CUSTOM_EMOJI` entity.
     """
 
     def __init__(
@@ -98,6 +119,7 @@ class InlineKeyboardButton(Object):
         copy_text: Optional[str] = None,
         style: "enums.ButtonStyle" = None,
         style_icon: Optional[int] = None,
+        icon_custom_emoji_id: Optional[int] = None,
     ):
         super().__init__()
 
@@ -112,10 +134,25 @@ class InlineKeyboardButton(Object):
         self.callback_game = callback_game
         self.copy_text = copy_text
         self.style = style
-        self.style_icon = style_icon
+        # ``icon_custom_emoji_id`` is the canonical name; ``style_icon`` is the legacy alias.
+        self.icon_custom_emoji_id = (
+            icon_custom_emoji_id if icon_custom_emoji_id is not None else style_icon
+        )
+
+    @property
+    def style_icon(self) -> Optional[int]:
+        """Deprecated alias of :attr:`icon_custom_emoji_id`."""
+        return self.icon_custom_emoji_id
+
+    @style_icon.setter
+    def style_icon(self, value: Optional[int]):
+        self.icon_custom_emoji_id = value
 
     @staticmethod
     def read(b: "raw.base.KeyboardButton"):
+        style = _read_raw_style(b)
+        icon = _read_raw_icon(b)
+
         if isinstance(b, raw.types.KeyboardButtonCallback):
             try:
                 data = b.data.decode()
@@ -125,28 +162,32 @@ class InlineKeyboardButton(Object):
             return InlineKeyboardButton(
                 text=b.text,
                 callback_data=data,
-                style=_read_raw_style(b),
-                style_icon=getattr(b.style, "icon", None) if getattr(b, "style", None) else None,
+                style=style,
+                icon_custom_emoji_id=icon,
             )
 
         if isinstance(b, raw.types.KeyboardButtonUrl):
             return InlineKeyboardButton(
                 text=b.text,
                 url=b.url,
-                style=_read_raw_style(b),
-                style_icon=getattr(b.style, "icon", None) if getattr(b, "style", None) else None,
+                style=style,
+                icon_custom_emoji_id=icon,
             )
 
         if isinstance(b, raw.types.KeyboardButtonUrlAuth):
             return InlineKeyboardButton(
                 text=b.text,
-                login_url=types.LoginUrl.read(b)
+                login_url=types.LoginUrl.read(b),
+                style=style,
+                icon_custom_emoji_id=icon,
             )
 
         if isinstance(b, raw.types.KeyboardButtonUserProfile):
             return InlineKeyboardButton(
                 text=b.text,
-                user_id=b.user_id
+                user_id=b.user_id,
+                style=style,
+                icon_custom_emoji_id=icon,
             )
 
         if isinstance(b, raw.types.KeyboardButtonSwitchInline):
@@ -154,42 +195,50 @@ class InlineKeyboardButton(Object):
                 return InlineKeyboardButton(
                     text=b.text,
                     switch_inline_query_current_chat=b.query,
-                    style=_read_raw_style(b),
+                    style=style,
+                    icon_custom_emoji_id=icon,
                 )
             else:
                 return InlineKeyboardButton(
                     text=b.text,
                     switch_inline_query=b.query,
-                    style=_read_raw_style(b),
+                    style=style,
+                    icon_custom_emoji_id=icon,
                 )
 
         if isinstance(b, raw.types.KeyboardButtonGame):
             return InlineKeyboardButton(
                 text=b.text,
-                callback_game=types.CallbackGame()
+                callback_game=types.CallbackGame(),
+                style=style,
+                icon_custom_emoji_id=icon,
             )
 
         if isinstance(b, raw.types.KeyboardButtonWebView):
             return InlineKeyboardButton(
                 text=b.text,
-                web_app=types.WebAppInfo(url=b.url)
+                web_app=types.WebAppInfo(url=b.url),
+                style=style,
+                icon_custom_emoji_id=icon,
             )
 
         if isinstance(b, raw.types.KeyboardButtonCopy):
             return InlineKeyboardButton(
                 text=b.text,
                 copy_text=b.copy_text,
-                style=_read_raw_style(b),
+                style=style,
+                icon_custom_emoji_id=icon,
             )
 
         if isinstance(b, raw.types.KeyboardButton):
             return InlineKeyboardButton(
                 text=b.text,
-                style=_read_raw_style(b),
+                style=style,
+                icon_custom_emoji_id=icon,
             )
 
     async def write(self, client: "pyrogram.Client"):
-        raw_style = _build_raw_style(self.style, self.style_icon)
+        raw_style = _build_raw_style(self.style, self.icon_custom_emoji_id)
 
         if self.callback_data is not None:
             data = bytes(self.callback_data, "utf-8") if isinstance(self.callback_data, str) else self.callback_data
@@ -209,7 +258,8 @@ class InlineKeyboardButton(Object):
         if self.login_url is not None:
             return self.login_url.write(
                 text=self.text,
-                bot=await client.resolve_peer(self.login_url.bot_username or "self")
+                bot=await client.resolve_peer(self.login_url.bot_username or "self"),
+                style=raw_style
             )
 
         if self.user_id is not None:

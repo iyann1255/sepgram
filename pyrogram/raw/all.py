@@ -22,9 +22,13 @@
 # All changes made in this file will be lost! #
 # # # # # # # # # # # # # # # # # # # # # # # #
 
+from .lazy import LazyObjects
+
 layer = 225
 
-objects = {
+# Values are dotted import paths, resolved to the real class on first
+# lookup by LazyObjects. See pyrogram/raw/lazy.py.
+objects = LazyObjects({
     0x05162463: "pyrogram.raw.types.ResPQ",
     0x83c95aec: "pyrogram.raw.types.PQInnerData",
     0xa9f55f95: "pyrogram.raw.types.PQInnerDataDc",
@@ -2435,4 +2439,4 @@ objects = {
     0x0949d9dc: "pyrogram.raw.core.FutureSalt",
     0x3072cfa1: "pyrogram.raw.core.GzipPacked",
     0x5bb8e511: "pyrogram.raw.core.Message",
-}
+})

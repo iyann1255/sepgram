@@ -66,6 +66,7 @@ pip install git+https://github.com/iyann1255/sepgram
 | Proxy support (TCP) | ✅ |
 | Multiple sessions | ✅ |
 | Auto-reconnect | ✅ |
+| Lazy raw TL loading (~4x faster import, ~20 MB less RAM) | ✅ |
 
 ### 💬 Messages
 
@@ -199,6 +200,8 @@ pip install git+https://github.com/iyann1255/sepgram
 | Request callback answer | ✅ |
 | Set game score / get high scores | ✅ |
 | Edit inline text/caption/media/reply_markup | ✅ |
+| Colored buttons (`ButtonStyle` primary/danger/success) | ✅ |
+| Premium / custom emoji icon on buttons (`icon_custom_emoji_id`) | ✅ |
 
 ### 💳 Payments
 
@@ -330,6 +333,35 @@ markup = InlineKeyboardMarkup([
 
 await client.send_message(chat_id, "Choose:", reply_markup=markup)
 ```
+
+### Premium emoji & colored buttons
+
+Pass `icon_custom_emoji_id` to put a custom/premium emoji icon on a button. It works on
+inline buttons and reply-keyboard buttons, with or without a color `style`:
+
+```python
+from pyrogram import enums
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+markup = InlineKeyboardMarkup([
+    # icon only
+    [InlineKeyboardButton("Buy", callback_data="buy",
+                          icon_custom_emoji_id=5789175442628350606)],
+    # icon + color
+    [InlineKeyboardButton("Confirm", callback_data="ok",
+                          style=enums.ButtonStyle.SUCCESS,
+                          icon_custom_emoji_id=5789175442628350606),
+     InlineKeyboardButton("Cancel", callback_data="no",
+                          style=enums.ButtonStyle.DANGER)],
+])
+
+await client.send_message(chat_id, "Order:", reply_markup=markup)
+```
+
+Get the id from `Sticker.custom_emoji_id` of a custom emoji pack, or from a
+`MessageEntityType.CUSTOM_EMOJI` entity. Incoming markups expose the same field, so
+`button.icon_custom_emoji_id` round-trips. The older `style_icon` name still works as an
+alias.
 
 ### Download Media
 

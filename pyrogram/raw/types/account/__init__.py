@@ -22,41 +22,112 @@
 # All changes made in this file will be lost! #
 # # # # # # # # # # # # # # # # # # # # # # # #
 
-from .privacy_rules import PrivacyRules
-from .authorizations import Authorizations
-from .password import Password
-from .password_settings import PasswordSettings
-from .password_input_settings import PasswordInputSettings
-from .tmp_password import TmpPassword
-from .web_authorizations import WebAuthorizations
-from .authorization_form import AuthorizationForm
-from .sent_email_code import SentEmailCode
-from .takeout import Takeout
-from .wall_papers_not_modified import WallPapersNotModified
-from .wall_papers import WallPapers
-from .auto_download_settings import AutoDownloadSettings
-from .themes_not_modified import ThemesNotModified
-from .themes import Themes
-from .content_settings import ContentSettings
-from .reset_password_failed_wait import ResetPasswordFailedWait
-from .reset_password_requested_wait import ResetPasswordRequestedWait
-from .reset_password_ok import ResetPasswordOk
-from .chat_themes_not_modified import ChatThemesNotModified
-from .chat_themes import ChatThemes
-from .saved_ringtones_not_modified import SavedRingtonesNotModified
-from .saved_ringtones import SavedRingtones
-from .saved_ringtone import SavedRingtone
-from .saved_ringtone_converted import SavedRingtoneConverted
-from .emoji_statuses_not_modified import EmojiStatusesNotModified
-from .emoji_statuses import EmojiStatuses
-from .email_verified import EmailVerified
-from .email_verified_login import EmailVerifiedLogin
-from .auto_save_settings import AutoSaveSettings
-from .connected_bots import ConnectedBots
-from .business_chat_links import BusinessChatLinks
-from .resolved_business_chat_links import ResolvedBusinessChatLinks
-from .paid_messages_revenue import PaidMessagesRevenue
-from .saved_music_ids_not_modified import SavedMusicIdsNotModified
-from .saved_music_ids import SavedMusicIds
-from .passkeys import Passkeys
-from .passkey_registration_options import PasskeyRegistrationOptions
+from importlib import import_module
+from typing import TYPE_CHECKING
+
+_OBJECTS = {
+    "PrivacyRules": "privacy_rules",
+    "Authorizations": "authorizations",
+    "Password": "password",
+    "PasswordSettings": "password_settings",
+    "PasswordInputSettings": "password_input_settings",
+    "TmpPassword": "tmp_password",
+    "WebAuthorizations": "web_authorizations",
+    "AuthorizationForm": "authorization_form",
+    "SentEmailCode": "sent_email_code",
+    "Takeout": "takeout",
+    "WallPapersNotModified": "wall_papers_not_modified",
+    "WallPapers": "wall_papers",
+    "AutoDownloadSettings": "auto_download_settings",
+    "ThemesNotModified": "themes_not_modified",
+    "Themes": "themes",
+    "ContentSettings": "content_settings",
+    "ResetPasswordFailedWait": "reset_password_failed_wait",
+    "ResetPasswordRequestedWait": "reset_password_requested_wait",
+    "ResetPasswordOk": "reset_password_ok",
+    "ChatThemesNotModified": "chat_themes_not_modified",
+    "ChatThemes": "chat_themes",
+    "SavedRingtonesNotModified": "saved_ringtones_not_modified",
+    "SavedRingtones": "saved_ringtones",
+    "SavedRingtone": "saved_ringtone",
+    "SavedRingtoneConverted": "saved_ringtone_converted",
+    "EmojiStatusesNotModified": "emoji_statuses_not_modified",
+    "EmojiStatuses": "emoji_statuses",
+    "EmailVerified": "email_verified",
+    "EmailVerifiedLogin": "email_verified_login",
+    "AutoSaveSettings": "auto_save_settings",
+    "ConnectedBots": "connected_bots",
+    "BusinessChatLinks": "business_chat_links",
+    "ResolvedBusinessChatLinks": "resolved_business_chat_links",
+    "PaidMessagesRevenue": "paid_messages_revenue",
+    "SavedMusicIdsNotModified": "saved_music_ids_not_modified",
+    "SavedMusicIds": "saved_music_ids",
+    "Passkeys": "passkeys",
+    "PasskeyRegistrationOptions": "passkey_registration_options",
+}
+
+_SUBMODULES = frozenset((
+))
+
+__all__ = [*_OBJECTS, *_SUBMODULES]
+
+
+def __getattr__(name: str):
+    module = _OBJECTS.get(name)
+
+    if module is not None:
+        value = getattr(import_module("." + module, __name__), name)
+    elif name in _SUBMODULES:
+        value = import_module("." + name, __name__)
+    else:
+        raise AttributeError(
+            f"module {__name__!r} has no attribute {name!r}"
+        )
+
+    globals()[name] = value  # cache: subsequent lookups skip __getattr__
+    return value
+
+
+def __dir__():
+    return sorted(__all__)
+
+
+if TYPE_CHECKING:
+    from .privacy_rules import PrivacyRules
+    from .authorizations import Authorizations
+    from .password import Password
+    from .password_settings import PasswordSettings
+    from .password_input_settings import PasswordInputSettings
+    from .tmp_password import TmpPassword
+    from .web_authorizations import WebAuthorizations
+    from .authorization_form import AuthorizationForm
+    from .sent_email_code import SentEmailCode
+    from .takeout import Takeout
+    from .wall_papers_not_modified import WallPapersNotModified
+    from .wall_papers import WallPapers
+    from .auto_download_settings import AutoDownloadSettings
+    from .themes_not_modified import ThemesNotModified
+    from .themes import Themes
+    from .content_settings import ContentSettings
+    from .reset_password_failed_wait import ResetPasswordFailedWait
+    from .reset_password_requested_wait import ResetPasswordRequestedWait
+    from .reset_password_ok import ResetPasswordOk
+    from .chat_themes_not_modified import ChatThemesNotModified
+    from .chat_themes import ChatThemes
+    from .saved_ringtones_not_modified import SavedRingtonesNotModified
+    from .saved_ringtones import SavedRingtones
+    from .saved_ringtone import SavedRingtone
+    from .saved_ringtone_converted import SavedRingtoneConverted
+    from .emoji_statuses_not_modified import EmojiStatusesNotModified
+    from .emoji_statuses import EmojiStatuses
+    from .email_verified import EmailVerified
+    from .email_verified_login import EmailVerifiedLogin
+    from .auto_save_settings import AutoSaveSettings
+    from .connected_bots import ConnectedBots
+    from .business_chat_links import BusinessChatLinks
+    from .resolved_business_chat_links import ResolvedBusinessChatLinks
+    from .paid_messages_revenue import PaidMessagesRevenue
+    from .saved_music_ids_not_modified import SavedMusicIdsNotModified
+    from .saved_music_ids import SavedMusicIds
+    from .passkeys import Passkeys
+    from .passkey_registration_options import PasskeyRegistrationOptions

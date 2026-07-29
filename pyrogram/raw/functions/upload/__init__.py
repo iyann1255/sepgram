@@ -22,11 +22,52 @@
 # All changes made in this file will be lost! #
 # # # # # # # # # # # # # # # # # # # # # # # #
 
-from .save_file_part import SaveFilePart
-from .get_file import GetFile
-from .save_big_file_part import SaveBigFilePart
-from .get_web_file import GetWebFile
-from .get_cdn_file import GetCdnFile
-from .reupload_cdn_file import ReuploadCdnFile
-from .get_cdn_file_hashes import GetCdnFileHashes
-from .get_file_hashes import GetFileHashes
+from importlib import import_module
+from typing import TYPE_CHECKING
+
+_OBJECTS = {
+    "SaveFilePart": "save_file_part",
+    "GetFile": "get_file",
+    "SaveBigFilePart": "save_big_file_part",
+    "GetWebFile": "get_web_file",
+    "GetCdnFile": "get_cdn_file",
+    "ReuploadCdnFile": "reupload_cdn_file",
+    "GetCdnFileHashes": "get_cdn_file_hashes",
+    "GetFileHashes": "get_file_hashes",
+}
+
+_SUBMODULES = frozenset((
+))
+
+__all__ = [*_OBJECTS, *_SUBMODULES]
+
+
+def __getattr__(name: str):
+    module = _OBJECTS.get(name)
+
+    if module is not None:
+        value = getattr(import_module("." + module, __name__), name)
+    elif name in _SUBMODULES:
+        value = import_module("." + name, __name__)
+    else:
+        raise AttributeError(
+            f"module {__name__!r} has no attribute {name!r}"
+        )
+
+    globals()[name] = value  # cache: subsequent lookups skip __getattr__
+    return value
+
+
+def __dir__():
+    return sorted(__all__)
+
+
+if TYPE_CHECKING:
+    from .save_file_part import SaveFilePart
+    from .get_file import GetFile
+    from .save_big_file_part import SaveBigFilePart
+    from .get_web_file import GetWebFile
+    from .get_cdn_file import GetCdnFile
+    from .reupload_cdn_file import ReuploadCdnFile
+    from .get_cdn_file_hashes import GetCdnFileHashes
+    from .get_file_hashes import GetFileHashes

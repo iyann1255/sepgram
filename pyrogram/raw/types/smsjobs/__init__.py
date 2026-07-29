@@ -22,5 +22,40 @@
 # All changes made in this file will be lost! #
 # # # # # # # # # # # # # # # # # # # # # # # #
 
-from .eligible_to_join import EligibleToJoin
-from .status import Status
+from importlib import import_module
+from typing import TYPE_CHECKING
+
+_OBJECTS = {
+    "EligibleToJoin": "eligible_to_join",
+    "Status": "status",
+}
+
+_SUBMODULES = frozenset((
+))
+
+__all__ = [*_OBJECTS, *_SUBMODULES]
+
+
+def __getattr__(name: str):
+    module = _OBJECTS.get(name)
+
+    if module is not None:
+        value = getattr(import_module("." + module, __name__), name)
+    elif name in _SUBMODULES:
+        value = import_module("." + name, __name__)
+    else:
+        raise AttributeError(
+            f"module {__name__!r} has no attribute {name!r}"
+        )
+
+    globals()[name] = value  # cache: subsequent lookups skip __getattr__
+    return value
+
+
+def __dir__():
+    return sorted(__all__)
+
+
+if TYPE_CHECKING:
+    from .eligible_to_join import EligibleToJoin
+    from .status import Status

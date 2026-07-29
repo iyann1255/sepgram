@@ -576,59 +576,88 @@ def start(format: bool = False):
 
         d[c.namespace].append(c.name)
 
-    for namespace, types in namespaces_to_types.items():
-        with open(DESTINATION_PATH / "base" / namespace / "__init__.py", "w") as f:
+    def write_lazy_init(path, types, submodules):
+        """Emit a lazily-loading ``__init__.py``.
+
+        Eagerly importing every raw TL object costs well over a second of startup time and
+        tens of MB of RAM, even though a typical app touches only a handful of them.
+        Instead we emit a name -> module map and resolve it on first attribute access
+        (PEP 562), caching the result in ``globals()`` so later lookups are plain dict hits.
+        """
+        with open(path, "w", encoding="utf-8") as f:
             f.write(f"{notice}\n\n")
             f.write(f"{WARNING}\n\n")
+            f.write("from importlib import import_module\n")
+            f.write("from typing import TYPE_CHECKING\n\n")
 
+            f.write("_OBJECTS = {\n")
             for t in types:
-                module = t
+                module = "UpdatesT" if t == "Updates" else t
+                f.write(f'    "{t}": "{snake(module)}",\n')
+            f.write("}\n\n")
 
-                if module == "Updates":
-                    module = "UpdatesT"
+            submodules = list(filter(bool, submodules))
+            f.write("_SUBMODULES = frozenset((\n")
+            for n in submodules:
+                f.write(f'    "{n}",\n')
+            f.write("))\n\n")
 
-                f.write(f"from .{snake(module)} import {t}\n")
+            f.write("__all__ = [*_OBJECTS, *_SUBMODULES]\n\n")
 
-            if not namespace:
-                f.write(f"from . import {', '.join(filter(bool, namespaces_to_types))}")
+            f.write("\ndef __getattr__(name: str):\n")
+            f.write("    module = _OBJECTS.get(name)\n\n")
+            f.write("    if module is not None:\n")
+            f.write('        value = getattr(import_module("." + module, __name__), name)\n')
+            f.write("    elif name in _SUBMODULES:\n")
+            f.write('        value = import_module("." + name, __name__)\n')
+            f.write("    else:\n")
+            f.write("        raise AttributeError(\n")
+            f.write('            f"module {__name__!r} has no attribute {name!r}"\n')
+            f.write("        )\n\n")
+            f.write("    globals()[name] = value  # cache: subsequent lookups skip __getattr__\n")
+            f.write("    return value\n\n\n")
+            f.write("def __dir__():\n")
+            f.write("    return sorted(__all__)\n\n\n")
+
+            # Keep static analysers, IDEs and ``from ... import X`` autocompletion working.
+            f.write("if TYPE_CHECKING:\n")
+            for t in types:
+                module = "UpdatesT" if t == "Updates" else t
+                f.write(f"    from .{snake(module)} import {t}\n")
+            for n in submodules:
+                f.write(f"    from . import {n}\n")
+            if not types and not submodules:
+                f.write("    pass\n")
+
+    for namespace, types in namespaces_to_types.items():
+        write_lazy_init(
+            DESTINATION_PATH / "base" / namespace / "__init__.py",
+            types,
+            namespaces_to_types if not namespace else ()
+        )
 
     for namespace, types in namespaces_to_constructors.items():
-        with open(DESTINATION_PATH / "types" / namespace / "__init__.py", "w") as f:
-            f.write(f"{notice}\n\n")
-            f.write(f"{WARNING}\n\n")
-
-            for t in types:
-                module = t
-
-                if module == "Updates":
-                    module = "UpdatesT"
-
-                f.write(f"from .{snake(module)} import {t}\n")
-
-            if not namespace:
-                f.write(f"from . import {', '.join(filter(bool, namespaces_to_constructors))}\n")
+        write_lazy_init(
+            DESTINATION_PATH / "types" / namespace / "__init__.py",
+            types,
+            namespaces_to_constructors if not namespace else ()
+        )
 
     for namespace, types in namespaces_to_functions.items():
-        with open(DESTINATION_PATH / "functions" / namespace / "__init__.py", "w") as f:
-            f.write(f"{notice}\n\n")
-            f.write(f"{WARNING}\n\n")
-
-            for t in types:
-                module = t
-
-                if module == "Updates":
-                    module = "UpdatesT"
-
-                f.write(f"from .{snake(module)} import {t}\n")
-
-            if not namespace:
-                f.write(f"from . import {', '.join(filter(bool, namespaces_to_functions))}")
+        write_lazy_init(
+            DESTINATION_PATH / "functions" / namespace / "__init__.py",
+            types,
+            namespaces_to_functions if not namespace else ()
+        )
 
     with open(DESTINATION_PATH / "all.py", "w", encoding="utf-8") as f:
         f.write(notice + "\n\n")
         f.write(WARNING + "\n\n")
+        f.write("from .lazy import LazyObjects\n\n")
         f.write(f"layer = {layer}\n\n")
-        f.write("objects = {")
+        f.write("# Values are dotted import paths, resolved to the real class on first\n")
+        f.write("# lookup by LazyObjects. See pyrogram/raw/lazy.py.\n")
+        f.write("objects = LazyObjects({")
 
         for c in combinators:
             f.write(f'\n    {c.id}: "pyrogram.raw.{c.section}.{c.qualname}",')
@@ -642,7 +671,7 @@ def start(format: bool = False):
         f.write('\n    0x3072cfa1: "pyrogram.raw.core.GzipPacked",')
         f.write('\n    0x5bb8e511: "pyrogram.raw.core.Message",')
 
-        f.write("\n}\n")
+        f.write("\n})\n")
 
 
 if "__main__" == __name__:

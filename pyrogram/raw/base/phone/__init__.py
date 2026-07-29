@@ -22,11 +22,52 @@
 # All changes made in this file will be lost! #
 # # # # # # # # # # # # # # # # # # # # # # # #
 
-from .phone_call import PhoneCall
-from .group_call import GroupCall
-from .group_participants import GroupParticipants
-from .join_as_peers import JoinAsPeers
-from .exported_group_call_invite import ExportedGroupCallInvite
-from .group_call_stream_channels import GroupCallStreamChannels
-from .group_call_stream_rtmp_url import GroupCallStreamRtmpUrl
-from .group_call_stars import GroupCallStars
+from importlib import import_module
+from typing import TYPE_CHECKING
+
+_OBJECTS = {
+    "PhoneCall": "phone_call",
+    "GroupCall": "group_call",
+    "GroupParticipants": "group_participants",
+    "JoinAsPeers": "join_as_peers",
+    "ExportedGroupCallInvite": "exported_group_call_invite",
+    "GroupCallStreamChannels": "group_call_stream_channels",
+    "GroupCallStreamRtmpUrl": "group_call_stream_rtmp_url",
+    "GroupCallStars": "group_call_stars",
+}
+
+_SUBMODULES = frozenset((
+))
+
+__all__ = [*_OBJECTS, *_SUBMODULES]
+
+
+def __getattr__(name: str):
+    module = _OBJECTS.get(name)
+
+    if module is not None:
+        value = getattr(import_module("." + module, __name__), name)
+    elif name in _SUBMODULES:
+        value = import_module("." + name, __name__)
+    else:
+        raise AttributeError(
+            f"module {__name__!r} has no attribute {name!r}"
+        )
+
+    globals()[name] = value  # cache: subsequent lookups skip __getattr__
+    return value
+
+
+def __dir__():
+    return sorted(__all__)
+
+
+if TYPE_CHECKING:
+    from .phone_call import PhoneCall
+    from .group_call import GroupCall
+    from .group_participants import GroupParticipants
+    from .join_as_peers import JoinAsPeers
+    from .exported_group_call_invite import ExportedGroupCallInvite
+    from .group_call_stream_channels import GroupCallStreamChannels
+    from .group_call_stream_rtmp_url import GroupCallStreamRtmpUrl
+    from .group_call_stars import GroupCallStars

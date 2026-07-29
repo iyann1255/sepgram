@@ -22,12 +22,54 @@
 # All changes made in this file will be lost! #
 # # # # # # # # # # # # # # # # # # # # # # # #
 
-from .sent_code import SentCode
-from .authorization import Authorization
-from .exported_authorization import ExportedAuthorization
-from .password_recovery import PasswordRecovery
-from .code_type import CodeType
-from .sent_code_type import SentCodeType
-from .login_token import LoginToken
-from .logged_out import LoggedOut
-from .passkey_login_options import PasskeyLoginOptions
+from importlib import import_module
+from typing import TYPE_CHECKING
+
+_OBJECTS = {
+    "SentCode": "sent_code",
+    "Authorization": "authorization",
+    "ExportedAuthorization": "exported_authorization",
+    "PasswordRecovery": "password_recovery",
+    "CodeType": "code_type",
+    "SentCodeType": "sent_code_type",
+    "LoginToken": "login_token",
+    "LoggedOut": "logged_out",
+    "PasskeyLoginOptions": "passkey_login_options",
+}
+
+_SUBMODULES = frozenset((
+))
+
+__all__ = [*_OBJECTS, *_SUBMODULES]
+
+
+def __getattr__(name: str):
+    module = _OBJECTS.get(name)
+
+    if module is not None:
+        value = getattr(import_module("." + module, __name__), name)
+    elif name in _SUBMODULES:
+        value = import_module("." + name, __name__)
+    else:
+        raise AttributeError(
+            f"module {__name__!r} has no attribute {name!r}"
+        )
+
+    globals()[name] = value  # cache: subsequent lookups skip __getattr__
+    return value
+
+
+def __dir__():
+    return sorted(__all__)
+
+
+if TYPE_CHECKING:
+    from .sent_code import SentCode
+    from .authorization import Authorization
+    from .exported_authorization import ExportedAuthorization
+    from .password_recovery import PasswordRecovery
+    from .code_type import CodeType
+    from .sent_code_type import SentCodeType
+    from .login_token import LoginToken
+    from .logged_out import LoggedOut
+    from .passkey_login_options import PasskeyLoginOptions

@@ -22,11 +22,52 @@
 # All changes made in this file will be lost! #
 # # # # # # # # # # # # # # # # # # # # # # # #
 
-from .get_broadcast_stats import GetBroadcastStats
-from .load_async_graph import LoadAsyncGraph
-from .get_megagroup_stats import GetMegagroupStats
-from .get_message_public_forwards import GetMessagePublicForwards
-from .get_message_stats import GetMessageStats
-from .get_story_stats import GetStoryStats
-from .get_story_public_forwards import GetStoryPublicForwards
-from .get_poll_stats import GetPollStats
+from importlib import import_module
+from typing import TYPE_CHECKING
+
+_OBJECTS = {
+    "GetBroadcastStats": "get_broadcast_stats",
+    "LoadAsyncGraph": "load_async_graph",
+    "GetMegagroupStats": "get_megagroup_stats",
+    "GetMessagePublicForwards": "get_message_public_forwards",
+    "GetMessageStats": "get_message_stats",
+    "GetStoryStats": "get_story_stats",
+    "GetStoryPublicForwards": "get_story_public_forwards",
+    "GetPollStats": "get_poll_stats",
+}
+
+_SUBMODULES = frozenset((
+))
+
+__all__ = [*_OBJECTS, *_SUBMODULES]
+
+
+def __getattr__(name: str):
+    module = _OBJECTS.get(name)
+
+    if module is not None:
+        value = getattr(import_module("." + module, __name__), name)
+    elif name in _SUBMODULES:
+        value = import_module("." + name, __name__)
+    else:
+        raise AttributeError(
+            f"module {__name__!r} has no attribute {name!r}"
+        )
+
+    globals()[name] = value  # cache: subsequent lookups skip __getattr__
+    return value
+
+
+def __dir__():
+    return sorted(__all__)
+
+
+if TYPE_CHECKING:
+    from .get_broadcast_stats import GetBroadcastStats
+    from .load_async_graph import LoadAsyncGraph
+    from .get_megagroup_stats import GetMegagroupStats
+    from .get_message_public_forwards import GetMessagePublicForwards
+    from .get_message_stats import GetMessageStats
+    from .get_story_stats import GetStoryStats
+    from .get_story_public_forwards import GetStoryPublicForwards
+    from .get_poll_stats import GetPollStats

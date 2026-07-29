@@ -22,8 +22,46 @@
 # All changes made in this file will be lost! #
 # # # # # # # # # # # # # # # # # # # # # # # #
 
-from .get_boosts_list import GetBoostsList
-from .get_my_boosts import GetMyBoosts
-from .apply_boost import ApplyBoost
-from .get_boosts_status import GetBoostsStatus
-from .get_user_boosts import GetUserBoosts
+from importlib import import_module
+from typing import TYPE_CHECKING
+
+_OBJECTS = {
+    "GetBoostsList": "get_boosts_list",
+    "GetMyBoosts": "get_my_boosts",
+    "ApplyBoost": "apply_boost",
+    "GetBoostsStatus": "get_boosts_status",
+    "GetUserBoosts": "get_user_boosts",
+}
+
+_SUBMODULES = frozenset((
+))
+
+__all__ = [*_OBJECTS, *_SUBMODULES]
+
+
+def __getattr__(name: str):
+    module = _OBJECTS.get(name)
+
+    if module is not None:
+        value = getattr(import_module("." + module, __name__), name)
+    elif name in _SUBMODULES:
+        value = import_module("." + name, __name__)
+    else:
+        raise AttributeError(
+            f"module {__name__!r} has no attribute {name!r}"
+        )
+
+    globals()[name] = value  # cache: subsequent lookups skip __getattr__
+    return value
+
+
+def __dir__():
+    return sorted(__all__)
+
+
+if TYPE_CHECKING:
+    from .get_boosts_list import GetBoostsList
+    from .get_my_boosts import GetMyBoosts
+    from .apply_boost import ApplyBoost
+    from .get_boosts_status import GetBoostsStatus
+    from .get_user_boosts import GetUserBoosts

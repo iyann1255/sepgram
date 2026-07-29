@@ -22,12 +22,54 @@
 # All changes made in this file will be lost! #
 # # # # # # # # # # # # # # # # # # # # # # # #
 
-from .all_stories import AllStories
-from .stories import Stories
-from .story_views_list import StoryViewsList
-from .story_views import StoryViews
-from .peer_stories import PeerStories
-from .story_reactions_list import StoryReactionsList
-from .found_stories import FoundStories
-from .can_send_story_count import CanSendStoryCount
-from .albums import Albums
+from importlib import import_module
+from typing import TYPE_CHECKING
+
+_OBJECTS = {
+    "AllStories": "all_stories",
+    "Stories": "stories",
+    "StoryViewsList": "story_views_list",
+    "StoryViews": "story_views",
+    "PeerStories": "peer_stories",
+    "StoryReactionsList": "story_reactions_list",
+    "FoundStories": "found_stories",
+    "CanSendStoryCount": "can_send_story_count",
+    "Albums": "albums",
+}
+
+_SUBMODULES = frozenset((
+))
+
+__all__ = [*_OBJECTS, *_SUBMODULES]
+
+
+def __getattr__(name: str):
+    module = _OBJECTS.get(name)
+
+    if module is not None:
+        value = getattr(import_module("." + module, __name__), name)
+    elif name in _SUBMODULES:
+        value = import_module("." + name, __name__)
+    else:
+        raise AttributeError(
+            f"module {__name__!r} has no attribute {name!r}"
+        )
+
+    globals()[name] = value  # cache: subsequent lookups skip __getattr__
+    return value
+
+
+def __dir__():
+    return sorted(__all__)
+
+
+if TYPE_CHECKING:
+    from .all_stories import AllStories
+    from .stories import Stories
+    from .story_views_list import StoryViewsList
+    from .story_views import StoryViews
+    from .peer_stories import PeerStories
+    from .story_reactions_list import StoryReactionsList
+    from .found_stories import FoundStories
+    from .can_send_story_count import CanSendStoryCount
+    from .albums import Albums

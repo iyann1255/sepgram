@@ -22,9 +22,48 @@
 # All changes made in this file will be lost! #
 # # # # # # # # # # # # # # # # # # # # # # # #
 
-from .bot_info import BotInfo
-from .popular_app_bots import PopularAppBots
-from .preview_info import PreviewInfo
-from .exported_bot_token import ExportedBotToken
-from .requested_button import RequestedButton
-from .access_settings import AccessSettings
+from importlib import import_module
+from typing import TYPE_CHECKING
+
+_OBJECTS = {
+    "BotInfo": "bot_info",
+    "PopularAppBots": "popular_app_bots",
+    "PreviewInfo": "preview_info",
+    "ExportedBotToken": "exported_bot_token",
+    "RequestedButton": "requested_button",
+    "AccessSettings": "access_settings",
+}
+
+_SUBMODULES = frozenset((
+))
+
+__all__ = [*_OBJECTS, *_SUBMODULES]
+
+
+def __getattr__(name: str):
+    module = _OBJECTS.get(name)
+
+    if module is not None:
+        value = getattr(import_module("." + module, __name__), name)
+    elif name in _SUBMODULES:
+        value = import_module("." + name, __name__)
+    else:
+        raise AttributeError(
+            f"module {__name__!r} has no attribute {name!r}"
+        )
+
+    globals()[name] = value  # cache: subsequent lookups skip __getattr__
+    return value
+
+
+def __dir__():
+    return sorted(__all__)
+
+
+if TYPE_CHECKING:
+    from .bot_info import BotInfo
+    from .popular_app_bots import PopularAppBots
+    from .preview_info import PreviewInfo
+    from .exported_bot_token import ExportedBotToken
+    from .requested_button import RequestedButton
+    from .access_settings import AccessSettings

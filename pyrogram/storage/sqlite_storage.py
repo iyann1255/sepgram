@@ -16,7 +16,6 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with Pyrogram.  If not, see <http://www.gnu.org/licenses/>.
 
-import inspect
 import sqlite3
 import time
 from typing import List, Tuple, Any
@@ -92,6 +91,13 @@ def get_input_peer(peer_id: int, access_hash: int, peer_type: str):
 class SQLiteStorage(Storage):
     VERSION = 3
     USERNAME_TTL = 8 * 60 * 60
+
+    # Whitelist of columns reachable through _accessor. Guards the f-string SQL below
+    # and replaces the old inspect.stack() based column lookup, which walked (and
+    # linecache-read) the whole call stack on every single session attribute access.
+    _COLUMNS = frozenset((
+        "dc_id", "api_id", "test_mode", "auth_key", "date", "user_id", "is_bot"
+    ))
 
     def __init__(self, name: str):
         super().__init__(name)
@@ -169,45 +175,44 @@ class SQLiteStorage(Storage):
 
         return get_input_peer(*r)
 
-    def _get(self):
-        attr = inspect.stack()[2].function
-
+    def _get(self, attr: str):
         return self.conn.execute(
-            f"SELECT {attr} FROM sessions"
+            f"SELECT {attr} FROM sessions"  # noqa: S608 - attr comes from _COLUMNS only
         ).fetchone()[0]
 
-    def _set(self, value: Any):
-        attr = inspect.stack()[2].function
-
+    def _set(self, attr: str, value: Any):
         with self.conn:
             self.conn.execute(
-                f"UPDATE sessions SET {attr} = ?",
+                f"UPDATE sessions SET {attr} = ?",  # noqa: S608 - attr from _COLUMNS only
                 (value,)
             )
 
-    def _accessor(self, value: Any = object):
-        return self._get() if value is object else self._set(value)
+    def _accessor(self, attr: str, value: Any = object):
+        if attr not in self._COLUMNS:
+            raise ValueError(f"Invalid session column: {attr}")
+
+        return self._get(attr) if value is object else self._set(attr, value)
 
     async def dc_id(self, value: int = object):
-        return self._accessor(value)
+        return self._accessor("dc_id", value)
 
     async def api_id(self, value: int = object):
-        return self._accessor(value)
+        return self._accessor("api_id", value)
 
     async def test_mode(self, value: bool = object):
-        return self._accessor(value)
+        return self._accessor("test_mode", value)
 
     async def auth_key(self, value: bytes = object):
-        return self._accessor(value)
+        return self._accessor("auth_key", value)
 
     async def date(self, value: int = object):
-        return self._accessor(value)
+        return self._accessor("date", value)
 
     async def user_id(self, value: int = object):
-        return self._accessor(value)
+        return self._accessor("user_id", value)
 
     async def is_bot(self, value: bool = object):
-        return self._accessor(value)
+        return self._accessor("is_bot", value)
 
     def version(self, value: int = object):
         if value is object:

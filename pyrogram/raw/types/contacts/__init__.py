@@ -22,16 +22,62 @@
 # All changes made in this file will be lost! #
 # # # # # # # # # # # # # # # # # # # # # # # #
 
-from .contacts_not_modified import ContactsNotModified
-from .contacts import Contacts
-from .imported_contacts import ImportedContacts
-from .blocked import Blocked
-from .blocked_slice import BlockedSlice
-from .found import Found
-from .resolved_peer import ResolvedPeer
-from .top_peers_not_modified import TopPeersNotModified
-from .top_peers import TopPeers
-from .top_peers_disabled import TopPeersDisabled
-from .contact_birthdays import ContactBirthdays
-from .sponsored_peers_empty import SponsoredPeersEmpty
-from .sponsored_peers import SponsoredPeers
+from importlib import import_module
+from typing import TYPE_CHECKING
+
+_OBJECTS = {
+    "ContactsNotModified": "contacts_not_modified",
+    "Contacts": "contacts",
+    "ImportedContacts": "imported_contacts",
+    "Blocked": "blocked",
+    "BlockedSlice": "blocked_slice",
+    "Found": "found",
+    "ResolvedPeer": "resolved_peer",
+    "TopPeersNotModified": "top_peers_not_modified",
+    "TopPeers": "top_peers",
+    "TopPeersDisabled": "top_peers_disabled",
+    "ContactBirthdays": "contact_birthdays",
+    "SponsoredPeersEmpty": "sponsored_peers_empty",
+    "SponsoredPeers": "sponsored_peers",
+}
+
+_SUBMODULES = frozenset((
+))
+
+__all__ = [*_OBJECTS, *_SUBMODULES]
+
+
+def __getattr__(name: str):
+    module = _OBJECTS.get(name)
+
+    if module is not None:
+        value = getattr(import_module("." + module, __name__), name)
+    elif name in _SUBMODULES:
+        value = import_module("." + name, __name__)
+    else:
+        raise AttributeError(
+            f"module {__name__!r} has no attribute {name!r}"
+        )
+
+    globals()[name] = value  # cache: subsequent lookups skip __getattr__
+    return value
+
+
+def __dir__():
+    return sorted(__all__)
+
+
+if TYPE_CHECKING:
+    from .contacts_not_modified import ContactsNotModified
+    from .contacts import Contacts
+    from .imported_contacts import ImportedContacts
+    from .blocked import Blocked
+    from .blocked_slice import BlockedSlice
+    from .found import Found
+    from .resolved_peer import ResolvedPeer
+    from .top_peers_not_modified import TopPeersNotModified
+    from .top_peers import TopPeers
+    from .top_peers_disabled import TopPeersDisabled
+    from .contact_birthdays import ContactBirthdays
+    from .sponsored_peers_empty import SponsoredPeersEmpty
+    from .sponsored_peers import SponsoredPeers

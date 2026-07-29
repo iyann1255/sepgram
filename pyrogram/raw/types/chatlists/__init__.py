@@ -22,8 +22,46 @@
 # All changes made in this file will be lost! #
 # # # # # # # # # # # # # # # # # # # # # # # #
 
-from .exported_chatlist_invite import ExportedChatlistInvite
-from .exported_invites import ExportedInvites
-from .chatlist_invite_already import ChatlistInviteAlready
-from .chatlist_invite import ChatlistInvite
-from .chatlist_updates import ChatlistUpdates
+from importlib import import_module
+from typing import TYPE_CHECKING
+
+_OBJECTS = {
+    "ExportedChatlistInvite": "exported_chatlist_invite",
+    "ExportedInvites": "exported_invites",
+    "ChatlistInviteAlready": "chatlist_invite_already",
+    "ChatlistInvite": "chatlist_invite",
+    "ChatlistUpdates": "chatlist_updates",
+}
+
+_SUBMODULES = frozenset((
+))
+
+__all__ = [*_OBJECTS, *_SUBMODULES]
+
+
+def __getattr__(name: str):
+    module = _OBJECTS.get(name)
+
+    if module is not None:
+        value = getattr(import_module("." + module, __name__), name)
+    elif name in _SUBMODULES:
+        value = import_module("." + name, __name__)
+    else:
+        raise AttributeError(
+            f"module {__name__!r} has no attribute {name!r}"
+        )
+
+    globals()[name] = value  # cache: subsequent lookups skip __getattr__
+    return value
+
+
+def __dir__():
+    return sorted(__all__)
+
+
+if TYPE_CHECKING:
+    from .exported_chatlist_invite import ExportedChatlistInvite
+    from .exported_invites import ExportedInvites
+    from .chatlist_invite_already import ChatlistInviteAlready
+    from .chatlist_invite import ChatlistInvite
+    from .chatlist_updates import ChatlistUpdates

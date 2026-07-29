@@ -22,10 +22,50 @@
 # All changes made in this file will be lost! #
 # # # # # # # # # # # # # # # # # # # # # # # #
 
-from .is_eligible_to_join import IsEligibleToJoin
-from .join import Join
-from .leave import Leave
-from .update_settings import UpdateSettings
-from .get_status import GetStatus
-from .get_sms_job import GetSmsJob
-from .finish_job import FinishJob
+from importlib import import_module
+from typing import TYPE_CHECKING
+
+_OBJECTS = {
+    "IsEligibleToJoin": "is_eligible_to_join",
+    "Join": "join",
+    "Leave": "leave",
+    "UpdateSettings": "update_settings",
+    "GetStatus": "get_status",
+    "GetSmsJob": "get_sms_job",
+    "FinishJob": "finish_job",
+}
+
+_SUBMODULES = frozenset((
+))
+
+__all__ = [*_OBJECTS, *_SUBMODULES]
+
+
+def __getattr__(name: str):
+    module = _OBJECTS.get(name)
+
+    if module is not None:
+        value = getattr(import_module("." + module, __name__), name)
+    elif name in _SUBMODULES:
+        value = import_module("." + name, __name__)
+    else:
+        raise AttributeError(
+            f"module {__name__!r} has no attribute {name!r}"
+        )
+
+    globals()[name] = value  # cache: subsequent lookups skip __getattr__
+    return value
+
+
+def __dir__():
+    return sorted(__all__)
+
+
+if TYPE_CHECKING:
+    from .is_eligible_to_join import IsEligibleToJoin
+    from .join import Join
+    from .leave import Leave
+    from .update_settings import UpdateSettings
+    from .get_status import GetStatus
+    from .get_sms_job import GetSmsJob
+    from .finish_job import FinishJob

@@ -22,61 +22,152 @@
 # All changes made in this file will be lost! #
 # # # # # # # # # # # # # # # # # # # # # # # #
 
-from .read_history import ReadHistory
-from .delete_messages import DeleteMessages
-from .report_spam import ReportSpam
-from .get_messages import GetMessages
-from .get_participants import GetParticipants
-from .get_participant import GetParticipant
-from .get_channels import GetChannels
-from .get_full_channel import GetFullChannel
-from .create_channel import CreateChannel
-from .edit_admin import EditAdmin
-from .edit_title import EditTitle
-from .edit_photo import EditPhoto
-from .check_username import CheckUsername
-from .update_username import UpdateUsername
-from .join_channel import JoinChannel
-from .leave_channel import LeaveChannel
-from .invite_to_channel import InviteToChannel
-from .delete_channel import DeleteChannel
-from .export_message_link import ExportMessageLink
-from .toggle_signatures import ToggleSignatures
-from .get_admined_public_channels import GetAdminedPublicChannels
-from .edit_banned import EditBanned
-from .get_admin_log import GetAdminLog
-from .set_stickers import SetStickers
-from .read_message_contents import ReadMessageContents
-from .delete_history import DeleteHistory
-from .toggle_pre_history_hidden import TogglePreHistoryHidden
-from .get_left_channels import GetLeftChannels
-from .get_groups_for_discussion import GetGroupsForDiscussion
-from .set_discussion_group import SetDiscussionGroup
-from .edit_location import EditLocation
-from .toggle_slow_mode import ToggleSlowMode
-from .get_inactive_channels import GetInactiveChannels
-from .convert_to_gigagroup import ConvertToGigagroup
-from .get_send_as import GetSendAs
-from .delete_participant_history import DeleteParticipantHistory
-from .toggle_join_to_send import ToggleJoinToSend
-from .toggle_join_request import ToggleJoinRequest
-from .reorder_usernames import ReorderUsernames
-from .toggle_username import ToggleUsername
-from .deactivate_all_usernames import DeactivateAllUsernames
-from .toggle_forum import ToggleForum
-from .toggle_anti_spam import ToggleAntiSpam
-from .report_anti_spam_false_positive import ReportAntiSpamFalsePositive
-from .toggle_participants_hidden import ToggleParticipantsHidden
-from .update_color import UpdateColor
-from .toggle_view_forum_as_messages import ToggleViewForumAsMessages
-from .get_channel_recommendations import GetChannelRecommendations
-from .update_emoji_status import UpdateEmojiStatus
-from .set_boosts_to_unblock_restrictions import SetBoostsToUnblockRestrictions
-from .set_emoji_stickers import SetEmojiStickers
-from .restrict_sponsored_messages import RestrictSponsoredMessages
-from .search_posts import SearchPosts
-from .update_paid_messages_price import UpdatePaidMessagesPrice
-from .toggle_autotranslation import ToggleAutotranslation
-from .get_message_author import GetMessageAuthor
-from .check_search_posts_flood import CheckSearchPostsFlood
-from .set_main_profile_tab import SetMainProfileTab
+from importlib import import_module
+from typing import TYPE_CHECKING
+
+_OBJECTS = {
+    "ReadHistory": "read_history",
+    "DeleteMessages": "delete_messages",
+    "ReportSpam": "report_spam",
+    "GetMessages": "get_messages",
+    "GetParticipants": "get_participants",
+    "GetParticipant": "get_participant",
+    "GetChannels": "get_channels",
+    "GetFullChannel": "get_full_channel",
+    "CreateChannel": "create_channel",
+    "EditAdmin": "edit_admin",
+    "EditTitle": "edit_title",
+    "EditPhoto": "edit_photo",
+    "CheckUsername": "check_username",
+    "UpdateUsername": "update_username",
+    "JoinChannel": "join_channel",
+    "LeaveChannel": "leave_channel",
+    "InviteToChannel": "invite_to_channel",
+    "DeleteChannel": "delete_channel",
+    "ExportMessageLink": "export_message_link",
+    "ToggleSignatures": "toggle_signatures",
+    "GetAdminedPublicChannels": "get_admined_public_channels",
+    "EditBanned": "edit_banned",
+    "GetAdminLog": "get_admin_log",
+    "SetStickers": "set_stickers",
+    "ReadMessageContents": "read_message_contents",
+    "DeleteHistory": "delete_history",
+    "TogglePreHistoryHidden": "toggle_pre_history_hidden",
+    "GetLeftChannels": "get_left_channels",
+    "GetGroupsForDiscussion": "get_groups_for_discussion",
+    "SetDiscussionGroup": "set_discussion_group",
+    "EditLocation": "edit_location",
+    "ToggleSlowMode": "toggle_slow_mode",
+    "GetInactiveChannels": "get_inactive_channels",
+    "ConvertToGigagroup": "convert_to_gigagroup",
+    "GetSendAs": "get_send_as",
+    "DeleteParticipantHistory": "delete_participant_history",
+    "ToggleJoinToSend": "toggle_join_to_send",
+    "ToggleJoinRequest": "toggle_join_request",
+    "ReorderUsernames": "reorder_usernames",
+    "ToggleUsername": "toggle_username",
+    "DeactivateAllUsernames": "deactivate_all_usernames",
+    "ToggleForum": "toggle_forum",
+    "ToggleAntiSpam": "toggle_anti_spam",
+    "ReportAntiSpamFalsePositive": "report_anti_spam_false_positive",
+    "ToggleParticipantsHidden": "toggle_participants_hidden",
+    "UpdateColor": "update_color",
+    "ToggleViewForumAsMessages": "toggle_view_forum_as_messages",
+    "GetChannelRecommendations": "get_channel_recommendations",
+    "UpdateEmojiStatus": "update_emoji_status",
+    "SetBoostsToUnblockRestrictions": "set_boosts_to_unblock_restrictions",
+    "SetEmojiStickers": "set_emoji_stickers",
+    "RestrictSponsoredMessages": "restrict_sponsored_messages",
+    "SearchPosts": "search_posts",
+    "UpdatePaidMessagesPrice": "update_paid_messages_price",
+    "ToggleAutotranslation": "toggle_autotranslation",
+    "GetMessageAuthor": "get_message_author",
+    "CheckSearchPostsFlood": "check_search_posts_flood",
+    "SetMainProfileTab": "set_main_profile_tab",
+}
+
+_SUBMODULES = frozenset((
+))
+
+__all__ = [*_OBJECTS, *_SUBMODULES]
+
+
+def __getattr__(name: str):
+    module = _OBJECTS.get(name)
+
+    if module is not None:
+        value = getattr(import_module("." + module, __name__), name)
+    elif name in _SUBMODULES:
+        value = import_module("." + name, __name__)
+    else:
+        raise AttributeError(
+            f"module {__name__!r} has no attribute {name!r}"
+        )
+
+    globals()[name] = value  # cache: subsequent lookups skip __getattr__
+    return value
+
+
+def __dir__():
+    return sorted(__all__)
+
+
+if TYPE_CHECKING:
+    from .read_history import ReadHistory
+    from .delete_messages import DeleteMessages
+    from .report_spam import ReportSpam
+    from .get_messages import GetMessages
+    from .get_participants import GetParticipants
+    from .get_participant import GetParticipant
+    from .get_channels import GetChannels
+    from .get_full_channel import GetFullChannel
+    from .create_channel import CreateChannel
+    from .edit_admin import EditAdmin
+    from .edit_title import EditTitle
+    from .edit_photo import EditPhoto
+    from .check_username import CheckUsername
+    from .update_username import UpdateUsername
+    from .join_channel import JoinChannel
+    from .leave_channel import LeaveChannel
+    from .invite_to_channel import InviteToChannel
+    from .delete_channel import DeleteChannel
+    from .export_message_link import ExportMessageLink
+    from .toggle_signatures import ToggleSignatures
+    from .get_admined_public_channels import GetAdminedPublicChannels
+    from .edit_banned import EditBanned
+    from .get_admin_log import GetAdminLog
+    from .set_stickers import SetStickers
+    from .read_message_contents import ReadMessageContents
+    from .delete_history import DeleteHistory
+    from .toggle_pre_history_hidden import TogglePreHistoryHidden
+    from .get_left_channels import GetLeftChannels
+    from .get_groups_for_discussion import GetGroupsForDiscussion
+    from .set_discussion_group import SetDiscussionGroup
+    from .edit_location import EditLocation
+    from .toggle_slow_mode import ToggleSlowMode
+    from .get_inactive_channels import GetInactiveChannels
+    from .convert_to_gigagroup import ConvertToGigagroup
+    from .get_send_as import GetSendAs
+    from .delete_participant_history import DeleteParticipantHistory
+    from .toggle_join_to_send import ToggleJoinToSend
+    from .toggle_join_request import ToggleJoinRequest
+    from .reorder_usernames import ReorderUsernames
+    from .toggle_username import ToggleUsername
+    from .deactivate_all_usernames import DeactivateAllUsernames
+    from .toggle_forum import ToggleForum
+    from .toggle_anti_spam import ToggleAntiSpam
+    from .report_anti_spam_false_positive import ReportAntiSpamFalsePositive
+    from .toggle_participants_hidden import ToggleParticipantsHidden
+    from .update_color import UpdateColor
+    from .toggle_view_forum_as_messages import ToggleViewForumAsMessages
+    from .get_channel_recommendations import GetChannelRecommendations
+    from .update_emoji_status import UpdateEmojiStatus
+    from .set_boosts_to_unblock_restrictions import SetBoostsToUnblockRestrictions
+    from .set_emoji_stickers import SetEmojiStickers
+    from .restrict_sponsored_messages import RestrictSponsoredMessages
+    from .search_posts import SearchPosts
+    from .update_paid_messages_price import UpdatePaidMessagesPrice
+    from .toggle_autotranslation import ToggleAutotranslation
+    from .get_message_author import GetMessageAuthor
+    from .check_search_posts_flood import CheckSearchPostsFlood
+    from .set_main_profile_tab import SetMainProfileTab

@@ -22,11 +22,52 @@
 # All changes made in this file will be lost! #
 # # # # # # # # # # # # # # # # # # # # # # # #
 
-from .state import State
-from .difference_empty import DifferenceEmpty
-from .difference import Difference
-from .difference_slice import DifferenceSlice
-from .difference_too_long import DifferenceTooLong
-from .channel_difference_empty import ChannelDifferenceEmpty
-from .channel_difference_too_long import ChannelDifferenceTooLong
-from .channel_difference import ChannelDifference
+from importlib import import_module
+from typing import TYPE_CHECKING
+
+_OBJECTS = {
+    "State": "state",
+    "DifferenceEmpty": "difference_empty",
+    "Difference": "difference",
+    "DifferenceSlice": "difference_slice",
+    "DifferenceTooLong": "difference_too_long",
+    "ChannelDifferenceEmpty": "channel_difference_empty",
+    "ChannelDifferenceTooLong": "channel_difference_too_long",
+    "ChannelDifference": "channel_difference",
+}
+
+_SUBMODULES = frozenset((
+))
+
+__all__ = [*_OBJECTS, *_SUBMODULES]
+
+
+def __getattr__(name: str):
+    module = _OBJECTS.get(name)
+
+    if module is not None:
+        value = getattr(import_module("." + module, __name__), name)
+    elif name in _SUBMODULES:
+        value = import_module("." + name, __name__)
+    else:
+        raise AttributeError(
+            f"module {__name__!r} has no attribute {name!r}"
+        )
+
+    globals()[name] = value  # cache: subsequent lookups skip __getattr__
+    return value
+
+
+def __dir__():
+    return sorted(__all__)
+
+
+if TYPE_CHECKING:
+    from .state import State
+    from .difference_empty import DifferenceEmpty
+    from .difference import Difference
+    from .difference_slice import DifferenceSlice
+    from .difference_too_long import DifferenceTooLong
+    from .channel_difference_empty import ChannelDifferenceEmpty
+    from .channel_difference_too_long import ChannelDifferenceTooLong
+    from .channel_difference import ChannelDifference
