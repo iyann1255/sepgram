@@ -51,13 +51,13 @@ Sepgram is installed straight from GitHub — it is not published on PyPI.
 pip install git+https://github.com/iyann1255/sepgram
 
 # pinned to a release (recommended for production)
-pip install git+https://github.com/iyann1255/sepgram@v2.0.229
+pip install git+https://github.com/iyann1255/sepgram@v2.0.230
 ```
 
 In `requirements.txt`:
 
 ```
-sepgram @ git+https://github.com/iyann1255/sepgram@v2.0.229
+sepgram @ git+https://github.com/iyann1255/sepgram@v2.0.230
 ```
 
 Import name stays `pyrogram`, so existing code keeps working:
@@ -72,7 +72,7 @@ Prebuilt `.whl` and `.tar.gz` are also attached to each
 ### Speedups (recommended)
 
 ```bash
-pip install "sepgram[fast] @ git+https://github.com/iyann1255/sepgram@v2.0.229"
+pip install "sepgram[fast] @ git+https://github.com/iyann1255/sepgram@v2.0.230"
 ```
 
 The `fast` extra pulls in TgCrypto, a C implementation of AES-IGE/CTR. Without it
@@ -96,7 +96,7 @@ If more than one is listed, use a dedicated virtualenv per bot:
 
 ```bash
 python3 -m venv venv && source venv/bin/activate
-pip install "sepgram[fast] @ git+https://github.com/iyann1255/sepgram@v2.0.229"
+pip install "sepgram[fast] @ git+https://github.com/iyann1255/sepgram@v2.0.230"
 ```
 
 ---
