@@ -1,16 +1,16 @@
-name: Publish to PyPI
+name: Release
 
 on:
   push:
     tags:
       - "v*"
 
+permissions:
+  contents: write
+
 jobs:
-  publish:
+  release:
     runs-on: ubuntu-latest
-    environment: sepgram
-    permissions:
-      id-token: write
     steps:
       - uses: actions/checkout@v4
 
@@ -19,10 +19,48 @@ jobs:
           python-version: "3.11"
 
       - name: Install build tools
-        run: pip install build
+        run: pip install build==1.2.2.post1
 
       - name: Build package
         run: python -m build
 
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+      - name: Smoke test the built wheel
+        run: |
+          python -m venv /tmp/check
+          /tmp/check/bin/pip install dist/*.whl
+          /tmp/check/bin/python - <<'PY'
+          import asyncio
+          from io import BytesIO
+          import pyrogram
+          from pyrogram import raw, enums, types
+
+          print("version:", pyrogram.__version__)
+
+          E = 5789175442628350606
+
+          async def main():
+              markup = types.InlineKeyboardMarkup([[
+                  types.InlineKeyboardButton(
+                      "Buy", callback_data="buy",
+                      style=enums.ButtonStyle.SUCCESS, icon_custom_emoji_id=E
+                  )
+              ]])
+              wire = (await markup.write(None)).write()
+              button = raw.core.TLObject.read(BytesIO(wire)).rows[0].buttons[0]
+              assert button.style.icon == E, button
+              assert types.InlineKeyboardMarkup.read(
+                  raw.core.TLObject.read(BytesIO(wire))
+              ).inline_keyboard[0][0].icon_custom_emoji_id == E
+              assert len(raw.objects.resolve_all()) > 2000
+
+          asyncio.run(main())
+          print("smoke test OK")
+          PY
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes

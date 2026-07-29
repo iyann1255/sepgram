@@ -44,8 +44,59 @@ app.run()
 
 ## Installation
 
+Sepgram is installed straight from GitHub — it is not published on PyPI.
+
 ```bash
+# latest from the default branch
 pip install git+https://github.com/iyann1255/sepgram
+
+# pinned to a release (recommended for production)
+pip install git+https://github.com/iyann1255/sepgram@v2.0.229
+```
+
+In `requirements.txt`:
+
+```
+sepgram @ git+https://github.com/iyann1255/sepgram@v2.0.229
+```
+
+Import name stays `pyrogram`, so existing code keeps working:
+
+```python
+from pyrogram import Client, filters
+```
+
+Prebuilt `.whl` and `.tar.gz` are also attached to each
+[release](https://github.com/iyann1255/sepgram/releases).
+
+### Speedups (recommended)
+
+```bash
+pip install "sepgram[fast] @ git+https://github.com/iyann1255/sepgram@v2.0.229"
+```
+
+The `fast` extra pulls in TgCrypto, a C implementation of AES-IGE/CTR. Without it
+Pyrogram falls back to a pure-Python AES that is **orders of magnitude slower** on every
+message and every media chunk. If TgCrypto has no wheel for your Python version, install
+`tgcrypto2` or `pytgcrypto` instead — both provide the same `tgcrypto` module.
+
+### ⚠️ Use a virtualenv — forks collide
+
+Sepgram, Pyrogram, Pyrofork and Kurigram all install into the same top-level `pyrogram/`
+directory. Installing more than one into the same environment means **the last one
+installed silently overwrites the others**, and `import pyrogram` gives you whichever won
+— not necessarily Sepgram. Check with:
+
+```bash
+pip list | grep -iE "pyrogram|sepgram|pyrofork|kurigram"
+python -c "import pyrogram; print(pyrogram.__version__, pyrogram.__file__)"
+```
+
+If more than one is listed, use a dedicated virtualenv per bot:
+
+```bash
+python3 -m venv venv && source venv/bin/activate
+pip install "sepgram[fast] @ git+https://github.com/iyann1255/sepgram@v2.0.229"
 ```
 
 ---

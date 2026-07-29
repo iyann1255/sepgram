@@ -81,7 +81,15 @@ setup(
     },
     packages=find_packages(exclude=["compiler*", "tests*"]),
     zip_safe=False,
-    install_requires=requires
+    install_requires=requires,
+    extras_require={
+        # C implementation of the AES-IGE/CTR primitives. Without it Pyrogram falls back
+        # to a pure-Python AES that is orders of magnitude slower on every message and
+        # every media chunk. Kept optional because TgCrypto ships no wheels for the
+        # newest CPython releases; on those, install tgcrypto2 or pytgcrypto instead,
+        # both of which provide the same "tgcrypto" module.
+        "fast": ["TgCrypto==1.2.5"],
+    }
 )
 
 
