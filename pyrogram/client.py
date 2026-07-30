@@ -298,6 +298,12 @@ class Client(Methods):
 
         self.me: Optional[User] = None
 
+        # Integrasi BotAPIClient
+        from .bot_api.client import BotAPIClient
+        self.bot_api: Optional[BotAPIClient] = None
+        if self.bot_token:
+            self.bot_api = BotAPIClient(self.bot_token)
+
         self.message_cache = Cache(message_cache_size)
 
         # Sometimes, for some reason, the server will stop sending updates and will only respond to pings.
